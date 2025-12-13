@@ -4,6 +4,8 @@ Desenvolvido por:
  Altair Raphael Alcazar Perez
  Ana Luiza Vieria Custódio
 
+Link Git para o repositório: https://github.com/Altair-Raphael/VHDL/
+
 Este repositório contém a implementação em VHDL do processador **PoliLEGv8**, um subconjunto da arquitetura ARMv8 (AArch64), desenvolvido como parte da disciplina de Sistemas Digitais II.
 O projeto consiste em um processador **Monociclo** (Single-Cycle), onde cada instrução é buscada, decodificada e executada em um único ciclo de clock.
 
