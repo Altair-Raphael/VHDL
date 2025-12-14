@@ -1,4 +1,3 @@
-
 -- NOME                                NUSP            TURMA   -- 
 -- Altair Raphael Alcazar Perez        14555666        Turma 1 --
 -- Alvaro Primitz                      13687623        Turma 2 --
