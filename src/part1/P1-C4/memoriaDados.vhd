@@ -10,57 +10,63 @@
 -- Arquivo: memoria de dados
 
 library ieee;
-use ieee.numeric_bit.all; 
+use ieee.numeric_bit.all;
 use std.textio.all;
 
 entity memoriaDados is
     generic (
         addressSize : natural := 8;
-        dataSize    : natural := 8;
-        datFileName : string  := "memDados_conteudo_inicial.dat"
+        dataSize    : natural := 64;
+        datFileName : string  := "memDadosInicialPolilegv8.dat"
     );
     port (
         clock  : in bit;
         wr     : in bit;
-        addr   : in bit_vector (addressSize-1 downto 0);
-        data_i : in bit_vector (dataSize-1 downto 0);
-        data_o : out bit_vector (dataSize-1 downto 0)
+        addr   : in bit_vector(addressSize-1 downto 0);
+        data_i : in bit_vector(dataSize-1 downto 0);
+        data_o : out bit_vector(dataSize-1 downto 0)
     );
 end entity memoriaDados;
 
-architecture rtl of memoriaDados is
-    constant MEM_DEPTH : natural := 2**addressSize;
-    type mem_tipo is array (0 to MEM_DEPTH - 1) of bit_vector(dataSize-1 downto 0);
+architecture behavioral of memoriaDados is
+    constant depth : natural := 2**addressSize;
+    type mem_type is array (0 to depth-1) of bit_vector(dataSize-1 downto 0);
 
-    impure function init_mem (file_name : string) return mem_tipo is
-        file mem_file : text open read_mode is file_name;
-        variable line_in : line;
-        variable mem_aux : mem_tipo := (others => (others => '0'));
-        variable i : integer := 0;
-        variable data_read : bit_vector(dataSize-1 downto 0);
+    impure function init_mem(file_name : string) return mem_type is
+        file mif_file : text open read_mode is file_name;
+        variable mif_line : line;
+        variable temp_byte : bit_vector(7 downto 0);
+        variable temp_word : bit_vector(dataSize-1 downto 0);
+        variable temp_mem : mem_type;
     begin
-        while not endfile(mem_file) and i < MEM_DEPTH loop
-            readline(mem_file, line_in);
-            read(line_in, data_read);
-            mem_aux(i) := data_read;
-            i := i + 1;
+        for i in 0 to depth-1 loop temp_mem(i) := (others => '0'); end loop;
+
+        for i in 0 to depth-1 loop
+            if not endfile(mif_file) then
+                -- Le 8 bytes (8 linhas) para formar 64 bits
+                for j in 0 to 7 loop
+                    if not endfile(mif_file) then
+                        readline(mif_file, mif_line);
+                        read(mif_line, temp_byte);
+                        temp_word((7-j)*8 + 7 downto (7-j)*8) := temp_byte;
+                    end if;
+                end loop;
+                temp_mem(i) := temp_word;
+            end if;
         end loop;
-        return mem_aux;
-    end function init_mem;
+        return temp_mem;
+    end function;
 
-    signal mem : mem_tipo := init_mem(datFileName);
-    signal addr_int : integer range 0 to MEM_DEPTH - 1;
-
+    signal mem : mem_type := init_mem(datFileName);
 begin
-    addr_int <= to_integer(unsigned(addr));
-    data_o <= mem(addr_int);
-
-    process (clock)
+    data_o <= mem(to_integer(unsigned(addr)));
+    
+    process(clock)
     begin
-        if clock'event and clock = '1' then
-            if wr = '1' then
-                mem(addr_int) <= data_i;
+        if (clock'event and clock = '1') then
+            if (wr = '1') then
+                mem(to_integer(unsigned(addr))) <= data_i;
             end if;
         end if;
     end process;
-end architecture rtl;
+end architecture behavioral;

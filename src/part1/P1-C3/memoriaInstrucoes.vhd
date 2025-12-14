@@ -15,8 +15,8 @@ use std.textio.all;
 entity memoriaInstrucoes is
     generic (
         addressSize : natural := 8;
-        dataSize    : natural := 8; -- 8 bits (Byte addressing)
-        datFileName : string  := "memInstr_conteudo.dat"
+        dataSize    : natural := 32;
+        datFileName : string  := "memInstrPolilegv8.dat"
     );
     port (
         addr : in bit_vector(addressSize-1 downto 0);
@@ -24,35 +24,38 @@ entity memoriaInstrucoes is
     );
 end entity memoriaInstrucoes;
 
-architecture behavior of memoriaInstrucoes is
-    -- Define o tipo da memoria (Array de bytes)
-    -- Profundidade = 2^addressSize
-    constant DEPTH : natural := 2**addressSize;
-    type mem_type is array (0 to DEPTH-1) of bit_vector(dataSize-1 downto 0);
+architecture behavioral of memoriaInstrucoes is
+    constant depth : natural := 2**addressSize;
+    type mem_type is array (0 to depth-1) of bit_vector(dataSize-1 downto 0);
 
-    -- Funcao impura para carregar o arquivo .dat na memoria
-    impure function init_mem(fileName : string) return mem_type is
-        file f_ptr      : text open read_mode is fileName;
-        variable linha  : line;
-        variable temp_bv: bit_vector(dataSize-1 downto 0);
-        variable temp_mem : mem_type := (others => (others => '0'));
+    impure function init_mem(file_name : string) return mem_type is
+        file mif_file : text open read_mode is file_name;
+        variable mif_line : line;
+        variable temp_byte : bit_vector(7 downto 0);
+        variable temp_word : bit_vector(dataSize-1 downto 0);
+        variable temp_mem : mem_type;
     begin
-        for i in 0 to DEPTH-1 loop
-            if not endfile(f_ptr) then
-                readline(f_ptr, linha);
-                read(linha, temp_bv);
-                temp_mem(i) := temp_bv;
+        -- Zera a memoria
+        for i in 0 to depth-1 loop temp_mem(i) := (others => '0'); end loop;
+
+        for i in 0 to depth-1 loop
+            if not endfile(mif_file) then
+                -- Le 4 bytes (4 linhas) para formar 32 bits
+                for j in 0 to 3 loop
+                    if not endfile(mif_file) then
+                        readline(mif_file, mif_line);
+                        read(mif_line, temp_byte);
+                        -- Encaixa o byte na posicao correta (Big Endian)
+                        temp_word((3-j)*8 + 7 downto (3-j)*8) := temp_byte;
+                    end if;
+                end loop;
+                temp_mem(i) := temp_word;
             end if;
         end loop;
         return temp_mem;
     end function;
 
-    -- Sinal de memoria inicializado pela funcao
-    constant rom_content : mem_type := init_mem(datFileName);
-
+    constant mem : mem_type := init_mem(datFileName);
 begin
-    -- Leitura Assincrona: data <= rom[addr]
-    -- Converte o vetor de endereco (addr) para inteiro para acessar o indice
-    data <= rom_content(to_integer(unsigned(addr)));
-
-end architecture behavior;
+    data <= mem(to_integer(unsigned(addr)));
+end architecture behavioral;

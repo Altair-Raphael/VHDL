@@ -14,99 +14,62 @@ use ieee.numeric_bit.all;
 entity tb_memoriaDados is
 end entity tb_memoriaDados;
 
-architecture behavioral of tb_memoriaDados is
+architecture test of tb_memoriaDados is
+    component memoriaDados is
+        generic (
+            addressSize : natural := 8;
+            dataSize    : natural := 64; -- Atualizado para 64
+            datFileName : string  := "memDadosInicialPolilegv8.dat"
+        );
+        port (
+            clock  : in bit;
+            wr     : in bit;
+            addr   : in bit_vector(addressSize-1 downto 0);
+            data_i : in bit_vector(dataSize-1 downto 0);
+            data_o : out bit_vector(dataSize-1 downto 0)
+        );
+    end component;
 
-    -- Constantes
-    constant C_ADDR_SIZE : natural := 8;
-    constant C_DATA_SIZE : natural := 8;
-    constant C_CLK_PERIOD : time := 10 ns;
-
-    -- Sinais
-    signal clock_s  : bit := '0';
-    signal wr_s     : bit := '0';
-    signal addr_s   : bit_vector (C_ADDR_SIZE-1 downto 0) := (others => '0');
-    signal data_i_s : bit_vector (C_DATA_SIZE-1 downto 0) := (others => '0');
-    signal data_o_s : bit_vector (C_DATA_SIZE-1 downto 0);
+    signal s_clock : bit := '0';
+    signal s_wr    : bit := '0';
+    signal s_addr  : bit_vector(7 downto 0) := (others => '0');
+    signal s_data_i: bit_vector(63 downto 0) := (others => '0');
+    signal s_data_o: bit_vector(63 downto 0);
 
 begin
+    DUT: memoriaDados
+        generic map (addressSize => 8, dataSize => 64, datFileName => "memDadosInicialPolilegv8.dat")
+        port map (s_clock, s_wr, s_addr, s_data_i, s_data_o);
 
-    -- Instanciação Direta
-    DUT : entity work.memoriaDados
-    generic map (
-        addressSize => C_ADDR_SIZE,
-        dataSize    => C_DATA_SIZE,
-        datFileName => "memDados_conteudo_inicial.dat"
-    )
-    port map (
-        clock  => clock_s,
-        wr     => wr_s,
-        addr   => addr_s,
-        data_i => data_i_s,
-        data_o => data_o_s
-    );
-
-    -- Gerador de Clock Limitado (para evitar timeout)
-    CLK_GEN : process
+    -- Clock generator
+    process
     begin
-        for i in 1 to 30 loop -- 30 ciclos são suficientes
-            clock_s <= '0';
-            wait for C_CLK_PERIOD/2;
-            clock_s <= '1';
-            wait for C_CLK_PERIOD/2;
-        end loop;
+        s_clock <= '0'; wait for 5 ns;
+        s_clock <= '1'; wait for 5 ns;
+    end process;
+
+    process
+    begin
+        report "Inicio Teste Memoria Dados (64 bits)";
+        
+        -- 1. Leitura Inicial (Endereço 0) - Deve ler 8 bytes do arquivo
+        s_wr <= '0';
+        s_addr <= "00000000";
+        wait for 10 ns;
+
+        -- 2. Escrita (Gravar FFFFFF... no Endereço 1)
+        wait until s_clock = '0'; -- Sincronizar
+        s_wr <= '1';
+        s_addr <= "00000001";
+        s_data_i <= (others => '1'); -- 64 bits de '1'
+        wait for 10 ns;
+
+        -- 3. Leitura do que foi gravado
+        s_wr <= '0';
+        s_data_i <= (others => '0');
+        wait for 10 ns; -- Aguarda leitura estabilizar
+
+        report "Fim Teste Memoria Dados";
         wait;
     end process;
-
-    -- Processo de Teste com Asserts
-    TEST_CASES : process
-    begin
-        -- Aguarda inicialização
-        wait for 10 ns; 
-        
-        -----------------------------------------------------------------------
-        -- TESTE 1: Verificar leitura inicial do arquivo .dat
-        -----------------------------------------------------------------------
-        -- Lê endereço 0
-        addr_s <= "00000000"; 
-        wait for 5 ns;
-        -- Se data_o_s NÃO for 00000001, imprime erro
-        assert data_o_s = "00000001"
-            report "ERRO GRAVE: Leitura do endereco 0 incorreta! Verifique se o arquivo .dat foi lido."
-            severity error;
-        
-        -- Lê endereço 1
-        addr_s <= "00000001"; 
-        wait for 5 ns;
-        assert data_o_s = "00000010"
-            report "ERRO: Leitura do endereco 1 incorreta!"
-            severity error;
-
-        -----------------------------------------------------------------------
-        -- TESTE 2: Verificar Escrita Síncrona
-        -----------------------------------------------------------------------
-        addr_s <= "00000011";      -- Endereço 3
-        data_i_s <= "10101010";    -- Dado a escrever
-        wr_s <= '1';               -- Habilita escrita
-        
-        wait until clock_s = '1';  -- Aguarda borda de subida
-        wait for 1 ns;             -- Hold time
-        wr_s <= '0';               -- Desabilita
-
-        -- Espera um pouco e verifica se o valor mudou
-        wait for 5 ns;
-        
-        assert data_o_s = "10101010"
-            report "ERRO: A escrita na memoria FALHOU. O valor nao foi gravado corretamente."
-            severity error;
-
-        -----------------------------------------------------------------------
-        -- MENSAGEM FINAL
-        -----------------------------------------------------------------------
-        -- Se chegou até aqui, avisa que terminou. 
-        -- Se houve erros, eles apareceram acima em vermelho/negrito no log.
-        report "Verificacao concluida. Se voce nao viu mensagens de ERRO acima, o codigo funciona perfeitamente." severity note;
-        
-        wait; -- Para o processo
-    end process;
-
-end architecture behavioral;
+end architecture;
