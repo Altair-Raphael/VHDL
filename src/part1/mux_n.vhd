@@ -1,3 +1,14 @@
+
+-- NOME                                NUSP            TURMA   -- 
+-- Altair Raphael Alcazar Perez        14555666        Turma 1 --
+-- Alvaro Primitz                      13687623        Turma 2 --
+-- Ana Luiza Vieira Custodio           13684508        Turma 3 --
+-- João Pedro Vakimoto                 14654718        Turma 2 --
+-- José Rodrigues de Oliveira Santos   14583790        Turma 2 --
+-- Lucas José Moura Ferreira           14747812        Turma 2 --
+
+-- Arquivo: multiplexador
+
 library ieee;
 use ieee.numeric_bit.all;
 
