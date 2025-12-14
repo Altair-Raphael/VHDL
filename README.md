@@ -1,60 +1,69 @@
-# Processador PoliLEGv8 (Single-Cycle)
+# Processador PoliLEGv8 Monociclo
 
-Desenvolvido por:
- Altair Raphael Alcazar Perez
- Ana Luiza Vieria Custódio
+Este repositório contém a implementação completa do processador **PoliLEGv8** (baseado na arquitetura ARMv8/LEGv8), desenvolvida para a disciplina **PCS3225 - Sistemas Digitais II**.
 
-Link Git para o repositório: https://github.com/Altair-Raphael/VHDL/
+O projeto foi estruturado em 3 etapas incrementais, culminando na versão Monociclo totalmente funcional.
 
-Este repositório contém a implementação em VHDL do processador **PoliLEGv8**, um subconjunto da arquitetura ARMv8 (AArch64), desenvolvido como parte da disciplina de Sistemas Digitais II.
-O projeto consiste em um processador **Monociclo** (Single-Cycle), onde cada instrução é buscada, decodificada e executada em um único ciclo de clock.
+##  Integrantes do Grupo
+* **Altair Raphael Alcazar Perez** | **NUSP: 14555666**
+* **Ana Luiza Vieira Custódio** | **NUSP: 13684508** [Número]
 
-## Visão Geral da Arquitetura
 
-O design segue a arquitetura de Harvard, com memórias separadas para Instruções e Dados, otimizando a largura de banda de acesso à memória durante o ciclo único.
+##  Organização do Projeto
 
-### Especificações Técnicas
-* **ISA:** LEGv8 (Subset didático do ARMv8 de 64 bits).
-* **Largura de Dados:** 64 bits.
-* **Largura de Instrução:** 32 bits.
-* **Registradores:** Banco de 32 registradores de uso geral (X0-X30) + XZR/SP.
-* **Organização:** Monociclo (Caminho de dados crítico define o clock).
+###  Parte 1: Biblioteca de Componentes Básicos
+Componentes fundamentais utilizados para construir o fluxo de dados.
+* `reg`: Registrador genérico com carga paralela.
+* `mux_n`: Multiplexador 2:1 genérico.
+* `memoriaInstrucoes`: ROM que lê arquivos `.dat`.
+* `memoriaDados`: RAM com escrita síncrona/leitura assíncrona.
+* `adder_n`: Somador sem carry-in.
+* `ularbit`: Bloco lógico de 1 bit (AND, OR, ADD, PASS B).
+* `sign_extend`: Extensor de sinal configurável.
+* `two_left_shifts`: Deslocador para cálculo de endereços (Branch).
 
-## Instruções Suportadas
+### Parte 2: Blocos Principais
+Componentes complexos construídos a partir da biblioteca da Parte 1.
+* **Banco de Registradores (`regfile`):** * 32 registradores de 64 bits.
+    * Leitura assíncrona dupla, escrita síncrona.
+    * Proteção de hardware no registrador `XZR` (X31).
+* **ULA de 64 bits (`ula`):**
+    * Composta por 64 instâncias de `ularbit`.
+    * Suporta flags: Zero (Z), Overflow (Ov), CarryOut (Co).
+    * Operações: ADD, SUB, AND, OR, PASS B, NOR.
 
-O processador implementa as seguintes classes de instruções:
+### Parte 3: Processador Integrado
+Integração final dos módulos.
+* **Fluxo de Dados (`fluxoDados`):** Conecta PC, Memórias, Banco de Registradores e ULA conforme diagrama monociclo.
+* **Unidade de Controle (`unidadeControle`):** Lógica combinacional que decodifica o *Opcode* e gera sinais de controle (ALUOp, Branch, MemRead, etc.).
+* **Top Level (`polilegv8`):** Entidade de topo contendo apenas Clock e Reset.
 
-* **Aritméticas e Lógicas (R-Type):** `ADD`, `SUB`, `AND`, `ORR`.
-* **Acesso à Memória (D-Type):** `LDUR` (Load), `STUR` (Store).
-* **Imediatos (I-Type):** `ADDI`, `SUBI`.
-* **Desvios (B-Type / CB-Type):** `CBZ`, `CBNZ`, `B` (Incondicional).
-* **Extensões:** Suporte a `MOVZ` e `BR` (Branch to Register) para chamadas de função.
+---
 
-## Estrutura do Projeto
+## 🚀 Como Simular (Testbench)
 
-A organização foi pensada para garantir modularidade e facilidade de teste:
+Para simular o processamento:
 
-* `src/`: Contém todo o código VHDL sintetizável.
-    * `components/`: Componentes básicos (Multiplexadores, Somadores).
-    * `datapath/`: Blocos lógicos principais (ULA, Banco de Registradores).
-* `tb/`: Testbenches para validação. Cada módulo possui um testbench unitário (`tb_*.vhd`).
+1. **Configuração da Memória:**
+   Certifique-se de que os arquivos `memInstrPolilegv8.dat` e `memDadosInicialPolilegv8.dat` estão na pasta de execução do simulador ou referenciados corretamente no testbench.
 
-## Escolhas de Design e Implementação
+2. **Compilação:**
+   Compile todos os arquivos da pasta `src/` respeitando a ordem de dependência:
+   `Utils` -> `Parte 1` -> `Parte 2` -> `Parte 3`.
 
-### 1. Modularidade
-O projeto foi dividido em entidades independentes (Entity/Architecture) para facilitar a depuração. O `Top Level` apenas instancia e conecta esses módulos, evitando um arquivo monolítico complexo.
+3. **Execução:**
+   Execute o testbench `tb/part3/tb_polilegv8.vhd`.
+   
+   *O programa de teste executa uma série de instruções (LDUR, ADD, SUB, ORR, AND, CBZ, STUR) para validar o conjunto de instruções.*
 
-### 2. Banco de Registradores (Register File)
-* Implementado com leitura assíncrona (para garantir estabilidade no monociclo) e escrita síncrona na borda de subida do clock.
-* Proteção de hardware no registrador `X31` (`XZR`) para garantir que ele sempre leia zero e nunca seja sobrescrito.
+---
 
-### 3. Unidade de Controle
-* A decodificação é feita puramente via lógica combinacional baseada no *Opcode* da instrução.
-* Sinais de controle (`RegWrite`, `ALUOp`, `MemRead`, etc.) são gerados centralmente para coordenar o fluxo de dados.
+##  Estrutura de Entrega (.zip)
 
-## Como Executar / Simular
+Para submissão final, os arquivos devem ser organizados conforme o roteiro:
+* `P1-C1` a `P1-C8`: Componentes da Parte 1.
+* `P2-B1` e `P2-B2`: RegFile e ULA.
+* `P3`: Fluxo, Controle e Top Level.
+* Relatório PDF consolidado.
 
-1.  Clone o repositório.
-2.  Importe os arquivos da pasta `src/` e `tb/` no seu simulador (ModelSim, GHDL ou Vivado).
-3.  Compile todos os arquivos.
-4.  Execute a simulação do `tb_polilegv8_core` para ver o processador executando um programa completo.
+---
