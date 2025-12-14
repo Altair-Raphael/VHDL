@@ -10,7 +10,7 @@
 
 library ieee;
 use ieee.numeric_bit.all;
-use work.polilegv8_pkg.all; 
+use work.polilegv8_pkg.all;
 
 entity regfile is
     port (
@@ -28,7 +28,7 @@ end entity regfile;
 
 architecture structural of regfile is
 
-    -- Declaração dos Componentes da Parte 1 e Auxiliares
+    -- Declaracao dos Componentes
     component reg is
         generic (dataSize: natural := 64);
         port (clock, reset, enable : in bit; d : in bit_vector; q : out bit_vector);
@@ -43,37 +43,32 @@ architecture structural of regfile is
     end component;
 
     -- Sinais Internos
-    signal write_enable_lines : bit_vector(31 downto 0); -- Saida do Decoder
-    signal reg_outputs        : reg_array;               -- Matriz com a saida de todos os regs
+    signal write_enable_lines : bit_vector(31 downto 0); 
+    signal reg_outputs        : reg_array;               
 
 begin
 
     -- 1. Decodificador de Escrita
-    -- Transforma o indice 'wr' (5 bits) em 32 fios ('hot-one')
     DECODER: decoder5_32 port map (sel => wr, res => write_enable_lines);
 
-    -- 2. Geração dos Registradores Reais (X0 até X30)
-    -- O 'generate' cria 31 copias do componente 'reg'
+    -- 2. Geracao dos Registradores Reais (X0 ate X30)
     GEN_REGS: for i in 0 to 30 generate
         REG_X: reg
             generic map (dataSize => 64)
             port map (
                 clock  => clock,
                 reset  => reset,
-                -- O registrador só grava se regWrite=1 E se ele foi o escolhido pelo decoder
                 enable => regWrite and write_enable_lines(i),
                 d      => d,
-                q      => reg_outputs(i) -- Conecta a saida no array geral
+                q      => reg_outputs(i) 
             );
     end generate GEN_REGS;
 
     -- 3. Tratamento do XZR (X31)
-    [cite_start]-- "O registrador X31 tem a particularidade: seu conteudo é sempre zero" [cite: 684]
-    -- Forçamos zero na posição 31 do array. Escritas aqui são ignoradas pois não há componente.
+    -- O registrador 31 e sempre zero e nao armazena dados.
     reg_outputs(31) <= (others => '0');
 
     -- 4. Multiplexadores de Leitura
-    -- Selecionam qual valor do array vai para a saida Q1 e Q2
     MUX_READ1: mux32_64 port map (inputs => reg_outputs, sel => rr1, dOut => q1);
     MUX_READ2: mux32_64 port map (inputs => reg_outputs, sel => rr2, dOut => q2);
 
