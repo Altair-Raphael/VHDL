@@ -1,5 +1,3 @@
-[cite_start]-- Especificação: [cite: 663-676]
-
 library ieee;
 use ieee.numeric_bit.all;
 
@@ -15,8 +13,6 @@ end entity mux_n;
 
 architecture behavior of mux_n is
 begin
-    -- Lógica Combinacional
-    [cite_start]-- Se sel=0 passa in0, se sel=1 passa in1 [cite: 678-679]
+    -- Logica Combinacional: Seleciona in0 se sel=0, senao in1
     dOut <= in0 when sel = '0' else in1;
-
 end architecture behavior;
