@@ -18,7 +18,7 @@ architecture test of tb_memoriaInstrucoes is
     component memoriaInstrucoes is
         generic (
             addressSize : natural := 8;
-            dataSize    : natural := 32; -- Atualizado para 32
+            dataSize    : natural := 32; 
             datFileName : string  := "memInstrPolilegv8.dat"
         );
         port (

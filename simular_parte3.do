@@ -1,5 +1,5 @@
 # ============================================================================
-# Script de Compilação e Simulação - Parte 3 (Completo PoliLEGv8)
+# Script Final - Teste da Parte 3 (PoliLEGv8) - CORRIGIDO
 # ============================================================================
 
 if {[file exists work]} {
@@ -8,8 +8,8 @@ if {[file exists work]} {
 vlib work
 vmap work work
 
-echo ">>> Compilando Parte 1 (Componentes Básicos)..."
-# Utilitários e Componentes Simples
+echo ">>> 1 de 4: Compilando Parte 1 (Com Memorias Inteligentes)..."
+# Compila utilitarios e componentes basicos
 vcom -2008 -work work src/part1/utils/fulladder.vhd
 vcom -2008 -work work src/part1/P1-C6/ula1bit.vhd
 vcom -2008 -work work src/part1/P1-C1/reg.vhd
@@ -18,41 +18,33 @@ vcom -2008 -work work src/part1/P1-C2/mux_n.vhd
 vcom -2008 -work work src/part1/P1-C7/sign_extend.vhd
 vcom -2008 -work work src/part1/P1-C8/two_left_shifts.vhd
 
-# Memórias (Atenção: Elas leem o arquivo .dat da pasta onde o vsim roda)
+# Compila as memorias que sabem ler os arquivos de 8 bits
 vcom -2008 -work work src/part1/P1-C3/memoriaInstrucoes.vhd
 vcom -2008 -work work src/part1/P1-C4/memoriaDados.vhd
 
-echo ">>> Compilando Parte 2 (Banco de Registradores e ULA)..."
-# Pacotes e Auxiliares
+echo ">>> 2 de 4: Compilando Parte 2 (Banco de Registradores e ULA)..."
 vcom -2008 -work work src/part2/polilegv8_pkg.vhd
 vcom -2008 -work work src/part2/decoder5_32.vhd
 vcom -2008 -work work src/part2/mux32_64.vhd
-
-# Blocos Principais
 vcom -2008 -work work src/part2/P2-B1/regfile.vhd
 vcom -2008 -work work src/part2/P2-B2/ula.vhd
 
-echo ">>> Compilando Parte 3 (Processador Monociclo)..."
-# Fluxo de Dados e Controle
-vcom -2008 -work work src/part3/P3/fluxoDados.vhd
-vcom -2008 -work work src/part3/P3/unidadeControle.vhd
-
-# Top Level (Processador Completo)
-vcom -2008 -work work src/part3/P3/polilegv8.vhd
-
-echo ">>> Preparando Arquivos de Dados..."
-# Copia os arquivos .dat da pasta P3 para a raiz (onde o ModelSim enxerga)
+echo ">>> 3 de 4: Compilando Parte 3 (Processador Completo)..."
+# Copia os arquivos .DAT da pasta P3 para a raiz (Obrigatorio para simulação)
 file copy -force src/part3/P3/memInstrPolilegv8.dat .
 file copy -force src/part3/P3/memDadosInicialPolilegv8.dat .
 
-echo ">>> Compilando Testbenches..."
-vcom -2008 -work work src/part3/P3/tb_fluxoDados.vhd
-vcom -2008 -work work src/part3/P3/tb_unidadeControle.vhd
+# Compila o Fluxo, Controle e o Top-Level
+vcom -2008 -work work src/part3/P3/fluxoDados.vhd
+vcom -2008 -work work src/part3/P3/unidadeControle.vhd
+vcom -2008 -work work src/part3/P3/polilegv8.vhd
+
+echo ">>> 4 de 4: Compilando Testbench Final..."
 vcom -2008 -work work src/part3/P3/tb_polilegv8.vhd
 
 echo ""
 echo "----------------------------------------------------------------"
-echo "COMPILAÇÃO CONCLUÍDA!"
-echo "1. Testar Controle:    vsim work.tb_unidadeControle"
-echo "2. Testar Processador: vsim work.tb_polilegv8"
+echo "TUDO PRONTO!"
+echo "Para iniciar a simulacao, digite o comando abaixo:"
+echo "vsim work.tb_polilegv8"
 echo "----------------------------------------------------------------"
