@@ -1,0 +1,22 @@
+[cite_start]-- Especificação: [cite: 663-676]
+
+library ieee;
+use ieee.numeric_bit.all;
+
+entity mux_n is
+    generic (dataSize: natural := 64);
+    port(
+        in0  : in bit_vector(dataSize-1 downto 0);
+        in1  : in bit_vector(dataSize-1 downto 0);
+        sel  : in bit;
+        dOut : out bit_vector(dataSize-1 downto 0)
+    );
+end entity mux_n;
+
+architecture behavior of mux_n is
+begin
+    -- Lógica Combinacional
+    [cite_start]-- Se sel=0 passa in0, se sel=1 passa in1 [cite: 678-679]
+    dOut <= in0 when sel = '0' else in1;
+
+end architecture behavior;
