@@ -29,7 +29,7 @@ Componentes complexos construídos a partir da biblioteca da Parte 1.
     * Leitura assíncrona dupla, escrita síncrona.
     * Proteção de hardware no registrador `XZR` (X31).
 * **ULA de 64 bits (`ula`):**
-    * Composta por 64 instâncias de `ularbit`.
+    * Composta por 64 instâncias de `ula1bit`.
     * Suporta flags: Zero (Z), Overflow (Ov), CarryOut (Co).
     * Operações: ADD, SUB, AND, OR, PASS B, NOR.
 
