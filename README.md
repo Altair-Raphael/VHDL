@@ -2,13 +2,14 @@
 
 Este repositório contém a implementação completa do processador **PoliLEGv8** (baseado na arquitetura ARMv8/LEGv8), desenvolvida para a disciplina **PCS3225 - Sistemas Digitais II**.
 
-O projeto foi estruturado em 3 etapas incrementais, culminando na versão Monociclo totalmente funcional.
+O projeto foi estruturado em 3 etapas incrementais, culminando na versão Monociclo do processador PoliLEGV8.
+Link para o repositório do projeto: https://github.com/Altair-Raphael/PoliLegV8
 
-##  Integrantes do Grupo
+##  Integrantes do Projeto
 * **Altair Raphael Alcazar Perez** | **NUSP: 14555666**
 * **Ana Luiza Vieira Custódio** | **NUSP: 13684508** 
 
-##  Organização do Projeto
+##  Organização do Processador
 
 ###  Parte 1: Biblioteca de Componentes Básicos
 Componentes fundamentais utilizados para construir o fluxo de dados.
